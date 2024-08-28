@@ -1,18 +1,21 @@
-import React, { useState } from 'react'
+import React from 'react'
+import './FlashCard.css'
+
 
 export default function FlashCard({ flash, isCurrent, isFlipped, onClick }) {
   // const [flip, setFlip] = useState(false)
   // const [card,setCard]= useState()
 
   return (
-    <div className='relative w-full max-w-md mx-auto bg-gray-800 rounded-xl shadow-lg overflow-hidden'>
+    <div className='relative w-full max-w-md mx-auto bg-gray-800 mx-auto shadow-lg overflow-hidden'>
       <div
-        className='p-6 bg-purple-600 text-white cursor-pointer'
+        className='p-6 bg-gradient-to-b from-white to-gray-400 cursor-pointer shadow-black'
         onClick={onClick}
+        style={{ transformStyle: 'preserve-3d' }}
       >
-        <div className={`flex ${isCurrent && isFlipped ? 'justify-center' : 'justify-between'}`}>
+        <div className={`flex ${isCurrent && isFlipped ? 'justify-center' : 'justify-between '}`}>
           {!isFlipped ? (
-            <div className='flex-grow'>
+            <div className='flex-grow flex flex-col justify-center items-start p-6 h-full bg-gray-400 rounded-xl backface-hidden'>
               <div className='text-xl font-semibold'>{flash.question}</div>
               <div className='mt-4'>
                 {flash.options.map((option, index) => (
@@ -21,7 +24,7 @@ export default function FlashCard({ flash, isCurrent, isFlipped, onClick }) {
               </div>
             </div>
           ) : (
-            <div className='text-center'>{flash.answer}</div>
+            <div className='text-center w-full h-full bg-gray-400 rounded-lg backface-hidden transform rotate-y-180 flex items-center justify-center'>{flash.answer}</div>
           )}
         </div>
       </div>
