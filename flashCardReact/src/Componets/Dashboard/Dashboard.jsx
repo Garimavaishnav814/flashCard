@@ -1,165 +1,189 @@
-import React, { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function Dashboard() {
-    const navigate=useNavigate();
-    const [allQuestion, setAllQuestion] = useState([]);
-    const [submitButton, setSubmitButton] = useState(true);
-    const [indexhold, setIndexhold] = useState(null);
-    const [inputQuestion, setInputQuestion] = useState({
-        ques: " ",
-    }
-    );
-    const handleQuestion = (e) => {
-        console.log(inputTask, "event")
-        setInputQuestion({
-            ...inputQuestion,
-            [e.target.name]: e.target.value
-        })
+  const navigate=useNavigate();
+    const [token, setToken] = useState('');
+    const [questionData, setQuestionData] = useState([]);
+    const [isPopupOpen, setIsPopupOpen] = useState(false);
+    const [newQuestion, setNewQuestion] = useState('');
+    const [newAnswer, setNewAnswer] = useState('');
+    const [isUpdateId, setIsUpdateId] = useState(null)
 
-    }
-    console.log("data entry", allQuestion)
-    const handleNewTask = async () => {
-        try {
-            console.log(indexhold, allQuestion, "allQuestion 21")
-            const token = localStorage.getItem("Token")
-            const bearerToken = `Bearer ${token}`
-            if (indexhold) {
-                const updateTaskData = await fetch(`http://localhost:5000/api/v1/${indexhold}`, {
-                    method: 'PUT',
-                    headers: {
-                        Accept: 'application.json',
-                        'Content-Type': 'application/json',
-                        "Authorization": bearerToken
-                    },
-                    body: JSON.stringify(allQuestion)
-                })
-                await getData();
-                setSubmitButton(true)
-                setIndexhold();
-                //   setInputTask();
-                // const newData = allQuestion.map((value, index) => {
-                //     if (indexhold === index) {
-                //         return inputTask
-                //     }
-                //     return value;
-                // })
-                // setAllQuestion(newData)
-            }
-            else {
-                const token = localStorage.getItem("Token")
-                const bearerToken = `Bearer ${token}`
-                const saveTakeData = await fetch('http://localhost:5000/api/v1/', {
-                    method: 'POST',
-                    headers: {
-                        Accept: 'application.json',
-                        'Content-Type': 'application/json',
-                        "Authorization": bearerToken
-                    },
-                    body: JSON.stringify(allQuestion)
-                })
-                await getData();
-                // setAllQuestion([...allQuestion, inputTask]);
-                console.log(saveTakeData, "saveData")
-            }
-            // console.log("data  submit")
-            setInputQuestion({
-                ques: " ",
-            })
-        } catch (error) {
-            console.log(error)
-        }
-
-    }
-    const taskUpdate = (updateValue) => {
-        console.log(updateValue, "updatevalue")
-        // const updt = allQuestion[updateValue]
-        setInputQuestion({ task: updateValue.task })
-        // console.log(updt)
-        setIndexhold(updateValue._id)
-        console.log(updateValue)
-        setSubmitButton(false)
-
-        // setTaskUpdt([...indexhold,updt])
-    }
-    console.log(inputQuestion, "updateTask")
-    const taskDelete = async (itemindex) => {
-        try {
-            const token = localStorage.getItem("Token")
-            const bearerToken = `Bearer ${token}`
-            const saveTakeData = await fetch(`http://localhost:5000/api/v1/${itemindex}`, {
-                method: 'DELETE',
-                headers: { "Authorization": bearerToken }
-            })
-            await getData();
-            // const dlt = allQuestion.filter((item, index) => index !== itemindex);
-            // console.log(dlt)
-            // setAllQuestion(dlt)
-        } catch (error) {
-            console.log(error)
-        }
-
-    }
-    const getData = async () => {
-        try {
-            const token = localStorage.getItem("Token")
-            const bearerToken = `Bearer ${token}`
-            const response = await fetch('http://localhost:5000/api/v1/', {
-                method: "GET",
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json",
-                    "Authorization": bearerToken
-                },
-            });
-            const taskData = await response.json();
-            console.log(taskData, "taskData")
-            setAllQuestion(taskData);
-
-        } catch (error) {
-            console.log(error)
-        }
-    }
     useEffect(() => {
-        const CheckUserAlreadyLoginOrNot=localStorage.getItem("Token")
-        if(!CheckUserAlreadyLoginOrNot)
-        {
-            navigate("/")
-        }
-        else{
+        const CheckUserAlreadyLoginOrNot = localStorage.getItem('token');
+        setToken(CheckUserAlreadyLoginOrNot);
+        if (!CheckUserAlreadyLoginOrNot) {
+            navigate('/adminLogin');
+        } else {
             getData();
         }
     }, []);
-    console.log(inputQuestion, "inputQuestion")
+
+    const getData = () => {
+      console.log(token,'token')
+      const tokenData=localStorage.getItem("token")
+        axios.get('http://localhost:5000/api/v1/question', {
+            headers: {
+                'Authorization': `Bearer ${tokenData}`
+            }
+        }).then((res) => {
+          console.log(res,"res")
+          if(res.data?.err){
+            navigate('/adminLogin')
+          }else{
+            setQuestionData(res.data);
+          }
+           
+        }).catch((e) => {
+            console.log(e);
+        });
+    };
+
+    const deleteHandle = (id) => {
+        axios.delete(`http://localhost:5000/api/v1/question/${id}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        }).then(() => {
+            getData();
+        });
+    };
+
+    const handleAddUpdateQuestion = () => {
+      if(isUpdateId){
+        axios.put(`http://localhost:5000/api/v1/question/${isUpdateId}`, {
+          question: newQuestion,
+          answer: newAnswer
+      }, {
+          headers: {
+              'Authorization': `Bearer ${token}`
+          }
+      }).then(() => {
+          getData();
+          closePopup();
+          setIsUpdateId(null)
+      }).catch((e) => {
+          console.log(e);
+      });
+      }else{
+        axios.post('http://localhost:5000/api/v1/question', {
+            question: newQuestion,
+            answer: newAnswer
+        }, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        }).then(() => {
+            getData();
+            closePopup();
+        }).catch((e) => {
+            console.log(e);
+        });}
+    };
+
+    const openPopup = () => {
+        setIsPopupOpen(true);
+
+    };
+
+    const closePopup = () => {
+        setIsPopupOpen(false);
+        setNewQuestion('');
+        setNewAnswer('');
+    };
+
+    const isUpdatePopup=(item)=>{
+      setIsPopupOpen(true)
+      setNewQuestion(item.question)
+      setNewAnswer(item.answer)
+      setIsUpdateId(item._id)
+    }
+
     return (
-        <>
-            <div className="flex justify-center items-center flex-col bg-slate-800 relative "  >
-                <img className="h-full w-full object-cover bg-cover bg-fixed  " 
-                src="https://images.pexels.com/photos/6690930/pexels-photo-6690930.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" />
-                <div className=" absolute top-10 ">
-                <h1 className="display-4 font-extrabold">Add your Quetion</h1>
-                <div className="flex gap-x-4 my-4 ">
-                    {
-                        submitButton ? <button className=" text-white font-semibold rounded-lg bg-blue-700 p-2" type='button' name="Submit" onClick={handleNewTask} >Add</button> : <button className="text-blue-900 font-extrabold" type='button' name="Submit" onClick={handleNewTask} >Update</button>
-                    }
-                    <input className="bg-slate-600 text-gray-50  w-60 p-2 rounded-xl" type="ques" name="ques" value={inputQuestion.task} onChange={handleQuestion} placeholder="Write your new Question" />
+        <div className="min-h-screen bg-gray-100 p-6">
+            <div className="max-w-4xl mx-auto bg-white p-4 rounded shadow">
+                <div className="flex justify-between items-center mb-4">
+                    <h1 className="text-xl font-bold">Dashboard</h1>
+                    <button 
+                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                        onClick={openPopup}
+                    >
+                        + Add
+                    </button>
                 </div>
-                <div className="addTask">
-                    <table>
-                        {allQuestion.length>0 && allQuestion.map((value, index) =>
-                            <tr className="" id="data">
-                                <td className="bg-slate-600 text-white font-semibold w-48" id="taskList" name="taskList" ><label for="taskList">{value.task}</label></td>
-                                <td><button className="text-blue-900 font-bold mx-2" type="button" onClick={() => taskUpdate(value)}>Update</button><button className=" text-red-800 font-bold mx-2" type="button" onClick={() => taskDelete(value._id)}>Delete</button></td>
+                <table className="min-w-full bg-white border border-gray-300">
+                    <thead>
+                        <tr>
+                            <th className="border px-4 py-2 text-left">ID</th>
+                            <th className="border px-4 py-2 text-left">Question</th>
+                            <th className="border px-4 py-2 text-left">Answer</th>
+                            <th className="border px-4 py-2 text-left">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {questionData?.map((item, index) => (
+                            <tr key={item.id}>
+                                <td className="border px-4 py-2">{index + 1}</td>
+                                <td className="border px-4 py-2">{item.question}</td>
+                                <td className="border px-4 py-2">{item.answer}</td>
+                                <td className="border px-4 py-2 flex justify-around">
+                                    <button onClick={()=>isUpdatePopup(item)}> 
+                                        <i className="fa-solid fa-pen-to-square text-blue-600"></i>
+                                    </button>
+                                    <button type='button' onClick={() => deleteHandle(item._id)}>
+                                        <i className="fa-solid fa-trash-can text-red-600"></i>
+                                    </button>
+                                </td>
                             </tr>
-                        )}
-                    </table>
-                </div>
-                </div>
-                
+                        ))}
+                    </tbody>
+                </table>
+
+                {/* Popup Form */}
+                {isPopupOpen && (
+                    <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75">
+                        <div className="bg-white p-6 rounded shadow-md w-1/2">
+                            <h2 className="text-lg font-bold mb-4">Add Question</h2>
+                            <div className="mb-4 flex flex-col items-start">
+                                <label className="block text-sm font-medium mb-2">Question</label>
+                                <input
+                                    type="text"
+                                    value={newQuestion}
+                                    onChange={(e) => setNewQuestion(e.target.value)}
+                                    className="w-full p-2 border border-gray-300 rounded"
+                                />
+                            </div>
+                            <div className="mb-4 flex flex-col items-start">
+                                <label className="block text-sm font-medium mb-2">Answer</label>
+                                <input
+                                    type="text"
+                                    value={newAnswer}
+                                    onChange={(e) => setNewAnswer(e.target.value)}
+                                    className="w-full p-2 border border-gray-300 rounded"
+                                />
+                            </div>
+                            <div className="flex justify-end">
+                                <button
+                                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-2"
+                                    onClick={handleAddUpdateQuestion}
+                                >
+                                    Submit
+                                </button>
+                                <button
+                                    className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                                    onClick={closePopup}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
-        </>
-    )
+        </div>
+    );
 }
 
 export default Dashboard;

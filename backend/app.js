@@ -5,7 +5,7 @@ app.use(express.json());
 app.use(cors());
 
 const user=require("./routs/userRoute")
-const todo=require("./routs/todoRoute")
+const flipQuestion=require("./routs/flipQuestionRoute")
 app.use("/api/v1",user)
-app.use("/api/v1",todo)
+app.use("/api/v1",flipQuestion)
 module.exports=app;

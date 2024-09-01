@@ -7,7 +7,7 @@ export default function FlashCard({ flash, isCurrent, isFlipped, onClick }) {
   // const [card,setCard]= useState()
 
   return (
-    <div className='relative w-full max-w-md mx-auto bg-gray-800 mx-auto shadow-lg overflow-hidden'>
+    <div className='relative w-full max-w-md mx-auto bg-gray-800 shadow-lg overflow-hidden'>
       <div
         className='p-6 bg-gradient-to-b from-white to-gray-400 cursor-pointer shadow-black'
         onClick={onClick}
@@ -17,11 +17,11 @@ export default function FlashCard({ flash, isCurrent, isFlipped, onClick }) {
           {!isFlipped ? (
             <div className='flex-grow flex flex-col justify-center items-start p-6 h-full bg-gray-400 rounded-xl backface-hidden'>
               <div className='text-xl font-semibold'>{flash.question}</div>
-              <div className='mt-4'>
+              {/* <div className='mt-4'>
                 {flash.options.map((option, index) => (
                   <div key={index} className='py-1'>{option}</div>
                 ))}
-              </div>
+              </div> */}
             </div>
           ) : (
             <div className='text-center w-full h-full bg-gray-400 rounded-lg backface-hidden transform rotate-y-180 flex items-center justify-center'>{flash.answer}</div>
